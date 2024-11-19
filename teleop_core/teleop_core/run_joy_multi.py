@@ -4,10 +4,10 @@ from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
 from std_msgs.msg import Bool, Int16
 
-from .my_ros_module import JoyParent
+from .my_ros_module import JoyBase
 
 
-class JoyMulti(JoyParent):
+class JoyMulti(JoyBase):
 
     def __init__(self, n_rover=6):
         super().__init__('multi_teleop')
