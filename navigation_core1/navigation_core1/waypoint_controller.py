@@ -7,40 +7,10 @@ from std_msgs.msg import Int16MultiArray
 from std_msgs.msg import Bool
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Float32MultiArray
-
-
 from sensor_msgs.msg import NavSatFix
 from math import sin, cos, atan2, sqrt, degrees, pi, radians
 
-
 iniDesiredCoor = [37.35228, -121.941788] # Garage
-f1 = 0
-path_id = 0
-
-rover_heading = 0.0
-ref_heading = 10.00
-heading_error_i = 0.0
-
-gps1lat = 0.0
-gps1lon = 0.0
-gps2lat = 0.0
-gps2lon = 0.0
-rover_lat = 0.0
-rover_lon = 0.0
-
-ref_coord_1_lat = 0.1
-ref_coord_1_lon = 0.12
-ref_coord_2_lat = 0.13
-ref_coord_2_lon = 0.14
-
-history = []
-
-# Jacob's Farm
-#latitudes_field   = [37.260939600, 37.260467900]
-#longitudes_field = [-121.839533600, -121.839519100]
-
-latitudes_field   = [ref_coord_1_lat, ref_coord_2_lat]
-longitudes_field = [ref_coord_1_lon, ref_coord_2_lon]
 
 class GiveDirections(Node):
 
@@ -51,8 +21,8 @@ class GiveDirections(Node):
         self.target_rover = f'p{self.n_target_rover+1}'
 
         super().__init__(f'directions_publisher_for_{self.target_rover}')
-        self.desHeading=0
-        self.dist=0
+        self.des_heading = 0
+        self.dist = 0
 
         self.publisher_ = self.create_publisher(
         	Twist,
@@ -69,7 +39,7 @@ class GiveDirections(Node):
         self.timer = self.create_timer(timer_period, self.publish_data)
 
         # Create a subscription to get current Euler Angles from IMU
-        self.curHeading = 0 #Euler Angle (heading)
+        self.cur_heading = 0 #Euler Angle (heading)
         self.subscriptionEuler = self.create_subscription(
             Float32MultiArray,
             f'/{self.target_rover}/imu/eulerAngle',
@@ -78,9 +48,9 @@ class GiveDirections(Node):
         self.subscriptionEuler 
 
         # Create a subscription to get current location from GPS
-        self.curLat = 0
-        self.curLon = 0
-        self.statusGPS=True
+        self.cur_lat = 0
+        self.cur_lon = 0
+        self.status_gps=True
         self.subscriptionLoc = self.create_subscription(
             NavSatFix,
             f'/{self.target_rover}/gps1',
@@ -89,7 +59,7 @@ class GiveDirections(Node):
         self.subscriptionLoc
 
         # # Create a subscription to get desired GPS location
-        self.desLat, self.desLon  = iniDesiredCoor
+        self.des_lat, self.des_lon  = iniDesiredCoor
         self.subscriptionTarget = self.create_subscription(
             NavSatFix,
             f'/{self.target_rover}/target',
@@ -97,47 +67,50 @@ class GiveDirections(Node):
             5)
         self.subscriptionTarget
 
-    def current_gps_callback(self, msgC:NavSatFix):
-        self.statusGPS = msgC.status.status
-        print("Status GPS:", self.statusGPS , "Lat/Lon:", msgC.latitude,msgC.longitude)
-        if(self.statusGPS!=0):
-            self.curLat = msgC.latitude
-            self.curLon = msgC.longitude
+    def current_gps_callback(self, msg_cur_pos:NavSatFix):
+        self.status_gps = msg_cur_pos.status.status
+        print("Status GPS:", self.status_gps , "Lat/Lon:", msg_cur_pos.latitude,msg_cur_pos.longitude)
+        if(self.status_gps!=0):
+            self.cur_lat = msg_cur_pos.latitude
+            self.cur_lon = msg_cur_pos.longitude
 
-    def target_callback(self, msgD:NavSatFix):
+    def target_callback(self, msg_des_pos:NavSatFix):
 
-        print("Desired Lat/Lon:", msgD.latitude,msgD.longitude)
-        self.desLat = msgD.latitude
-        self.desLon = msgD.longitude
+        print("Desired Lat/Lon:", msg_des_pos.latitude,msg_des_pos.longitude)
+        self.des_lat = msg_des_pos.latitude
+        self.des_lon = msg_des_pos.longitude
 
 
-    def euler_callback(self, msgE:Float32MultiArray):
+    def euler_callback(self, msg_imu_euler:Float32MultiArray):
         if self.n_target_rover == 0:
-            self.curHeading = 360 - msgE.data[0]
+            self.cur_heading = 360 - msg_imu_euler.data[0]
         elif self.n_target_rover == 1:
-            self.curHeading = msgE.data[0]
+            self.cur_heading = msg_imu_euler.data[0]
         elif self.n_target_rover == 2:
-            self.curHeading = 360 - msgE.data[0]
+            self.cur_heading = 360 - msg_imu_euler.data[0]
         
     def publish_data(self):
-        dataMsg=Float32MultiArray()
-        dataMsg.data = [float(self.curHeading), float(self.desHeading), float(self.dist)]
-        self.publisherImpData_.publish(dataMsg)
+        data_msg = Float32MultiArray()
+        data_msg.data = [float(self.cur_heading), float(self.des_heading), float(self.dist)]
+        self.publisherImpData_.publish(data_msg)
 
     def give_dir(self):
-        dLat = radians(self.desLat) - radians(self.curLat)
-        dLon = radians(self.desLon) - radians(self.curLon)
-        bearingX = cos(radians(self.desLat)) * sin(dLon)
-        bearingY = cos(radians(self.curLat)) * sin(radians(self.desLat)) - sin(radians(self.curLat)) * cos(radians(self.desLat)) * cos(dLon)
-        yawTarget = -atan2(bearingX,bearingY)
-        if yawTarget<0:
-            yawTarget += 2*pi
-        # yawTarget = 90
-        yawDelta = degrees(yawTarget) - self.curHeading
-        self.desHeading = degrees(yawTarget)
+        delta_lat = radians(self.des_lat) - radians(self.cur_lat)
+        delta_lon = radians(self.des_lon) - radians(self.cur_lon)
+        cos_des_lat = cos(radians(self.des_lat))
+        cos_cur_lat = cos(radians(self.cur_lat))
+        bearingX = cos_des_lat * sin(delta_lon)
+        bearingY = cos_cur_lat * sin(radians(self.des_lat)) - sin(radians(self.cur_lat)) * cos_des_lat * cos(delta_lon)
+        yaw_target = -atan2(bearingX,bearingY)
+        # yaw_target_approx = -atan2(delta_lon,delta_lat)
+        if yaw_target<0:
+            yaw_target += 2*pi
+        # yaw_target = 90
+        yaw_delta = degrees(yaw_target) - self.cur_heading
+        self.des_heading = degrees(yaw_target)
 
         R = 6373.0
-        a = sin(dLat/2)**2 + cos(radians(self.desLat)) * cos(radians(self.curLat)) * sin(dLon/2)**2
+        a = sin(delta_lat/2)**2 + cos_des_lat * cos_cur_lat * sin(delta_lon/2)**2
         c = 2* atan2(sqrt(a), sqrt(1-a))
         dist = R*c*1000
 
@@ -150,19 +123,19 @@ class GiveDirections(Node):
         if dist < 2.5:
             msg.linear.x = 0
             msg.angular.z = 0
-            print("STOPPED, ", dist, degrees(yawTarget), self.curHeading, yawDelta)
+            print("STOPPED, ", dist, degrees(yaw_target), self.cur_heading, yaw_delta)
         elif dist < 5:
             msg.linear.x = self.coefficient[self.n_target_rover][0] * dist
-            msg.angular.z = self.coefficient[self.n_target_rover][1] * yawDelta/360
-            print("PARKING, ", dist, degrees(yawTarget), self.curHeading, yawDelta)
-        elif yawDelta < 90 and yawDelta > -90:
+            msg.angular.z = self.coefficient[self.n_target_rover][1] * yaw_delta/360
+            print("PARKING, ", dist, degrees(yaw_target), self.cur_heading, yaw_delta)
+        elif yaw_delta < 90 and yaw_delta > -90:
             msg.linear.x = self.coefficient[self.n_target_rover][2]
-            msg.angular.z = self.coefficient[self.n_target_rover][3] * yawDelta/360
-            print("TRAVELLING, ", dist, degrees(yawTarget), self.curHeading, yawDelta)
+            msg.angular.z = self.coefficient[self.n_target_rover][3] * yaw_delta/360
+            print("TRAVELLING, ", dist, degrees(yaw_target), self.cur_heading, yaw_delta)
         else:
             msg.linear.x = 0.0
-            msg.angular.z = self.coefficient[self.n_target_rover][4] * yawDelta/360
-            print("TURNING, ", dist, degrees(yawTarget), self.curHeading, yawDelta)
+            msg.angular.z = self.coefficient[self.n_target_rover][4] * yaw_delta/360
+            print("TURNING, ", dist, degrees(yaw_target), self.cur_heading, yaw_delta)
 
         #print(msg)
         self.publisher_.publish(msg)

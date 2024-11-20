@@ -85,7 +85,7 @@ class PubSubManager:
         self._publishers[1][topic_name] = len(self._publishers[0]) - 1
     
     def publish(self, topic_name, msg):
-        if self._publishers[1][topic_name] is not None:
+        if topic_name in self._publishers[1]:
             self._publishers[0][self._publishers[1][topic_name]].publish(msg)
         else:
             print(f"Publisher for {topic_name} not found.")

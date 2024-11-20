@@ -1,6 +1,5 @@
 import rclpy
 from rclpy.node import Node
-
 from std_msgs.msg import Int16
 from std_srvs.srv import SetBool
 from geometry_msgs.msg import Twist
@@ -13,10 +12,10 @@ from .my_ros_module import JoyBase
 
 class GetMoveCmds(JoyBase):
 
-    def __init__(self):
+    def __init__(self, n_rover=3):
         super().__init__('rover_state_controler')
 
-        self.N_ROVER = 6
+        self.N_ROVER = n_rover
         self.toggle_button_mode = "RB"
         self.mode_list = ["NEU_M", "JOY_M", "NAV_M"]
         self.mode_dict = {"NEU_M": 0, "JOY_M": 1, "NAV_M": 2}
