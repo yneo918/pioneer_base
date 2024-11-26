@@ -1,3 +1,8 @@
+# NOTE: Not recommend for use this now.
+# Please use run_joy_cmd and demux by following:
+# $ ros2 launch teleop_core teleop_node_multi.launch.py 
+
+
 import rclpy
 
 from geometry_msgs.msg import Twist

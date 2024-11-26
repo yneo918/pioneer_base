@@ -27,19 +27,13 @@ def generate_launch_description():
 
     joy_to_cmd_vel = Node(
         package="teleop_core",
-        executable="joy2cmd",
-    )
-
-    demux = Node(
-        package="teleop_core",
-        executable="cmd_demux",
+        executable="multirover2_joy",
     )
 
     
 
     ld.add_action(run_joy_node)
     ld.add_action(joy_to_cmd_vel)
-    ld.add_action(demux)
 
     return ld
 

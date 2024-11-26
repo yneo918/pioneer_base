@@ -7,26 +7,32 @@ from sensor_msgs.msg import Joy
 from std_msgs.msg import Bool
 from std_msgs.msg import String
 
-from .my_ros_module import JoyBase
+from .my_ros_module import PubSubManager
 
 
-class GetMoveCmds(JoyBase):
+class GetMoveCmds(Node):
 
     def __init__(self, n_rover=3):
         super().__init__('rover_state_controler')
 
         self.N_ROVER = n_rover
-        self.toggle_button_mode = "RB"
         self.mode_list = ["NEU_M", "JOY_M", "NAV_M"]
         self.mode_dict = {"NEU_M": 0, "JOY_M": 1, "NAV_M": 2}
         self.rover_modeC = self.mode_list[0]
 
         self.joy_cmd = [0.0, 0.0]
 
+        self.pubsub = PubSubManager(self)
         self.pubsub.create_subscription(
             Twist,
-            'cmd_vel',
+            '/joy/cmd_vel',
             self.joy_cmd_callback,
+            5)
+        
+        self.pubsub.create_subscription(
+            String,
+            '/modeC',
+            self.mode_callback,
             5)
 
         self.nav = []
@@ -47,26 +53,20 @@ class GetMoveCmds(JoyBase):
         timer_period_core = 0.05  # seconds
         self.timer = self.create_timer(timer_period_core, self.core_cmd_vel_callback)
 
+
         # self.pub_rover_en = self.create_publisher(Bool, 'r4/enable', 1)
         # timer_period = 0.2  # seconds
         # self.timer = self.create_timer(timer_period, self.rover_en_callback)
         # self.i = 0
-
-        self.pubsub.create_publisher(String, '/modeC', 1)
-        timer_period_mode = 0.1  # seconds
-        self.timer = self.create_timer(timer_period_mode, self.robot_mode_callback)
-        
-    def joy_callback(self, msg):
-        _toggle = self.joy_toggle(msg)
-        if _toggle[self.button_dict[self.toggle_button_mode]] == 1:
-            print(f"Mode Button Toggled: {self.mode[self.mode_list[self.mode]]} to {self.mode[self.mode_list[(self.mode + 1) % 3]]}")
-            self.rover_modeC = self.mode[self.mode_list[(self.mode + 1) % 3]]
         
     def joy_cmd_callback(self, msg):
         self.joy_cmd = [msg.linear.x, msg.angular.z]
     
     def nav_cmd_callback(self, msg, i):
         self.nav[i] = [msg.linear.x, msg.angular.z]
+    
+    def mode_callback(self, msg):
+        self.self.rover_modeC = msg.data
     
     def core_cmd_vel_callback(self):
         msg = Twist()
@@ -85,11 +85,6 @@ class GetMoveCmds(JoyBase):
             msg.linear.x = self.u[i][0]
             msg.angular.z = self.u[i][1]
             self.pubsub.publish(f'/p{i+1}/cmd_vel', msg)
-
-    def robot_mode_callback(self):
-        msg = String()
-        msg.data = self.rover_modeC
-        self.pubsub.publish('/modeC', msg)
 
 
 def main(args=None):

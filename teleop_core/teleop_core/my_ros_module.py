@@ -39,7 +39,6 @@ class JoyBase(Node):
         self.prev_joy = Joy()
         #self.lx_axisN = self.axis_dict.get("LY")
     
-    
     def joy_callback(self, msg):
         _toggle = self.joy_toggle(msg)
     

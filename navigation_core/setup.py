@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'navigation_core1'
+package_name = 'navigation_core'
 
 setup(
     name=package_name,
