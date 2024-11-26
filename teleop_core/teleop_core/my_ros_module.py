@@ -1,6 +1,5 @@
 import rclpy
 from rclpy.node import Node
-
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
 from std_msgs.msg import Bool
@@ -45,7 +44,7 @@ class JoyBase(Node):
         _toggle = self.joy_toggle(msg)
     
     def joy_toggle(self, joy_msg):
-        if len(self.prev_joy.buttons) == 0:
+        if len(self.prev_joy.buttons) != len(joy_msg.buttons):
             self.prev_joy = joy_msg
 
         ret = [0] * len(joy_msg.buttons)
@@ -101,5 +100,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-
-#ros2 run joy joy_node

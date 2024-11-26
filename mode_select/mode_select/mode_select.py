@@ -94,10 +94,8 @@ class GetMoveCmds(JoyBase):
 
 def main(args=None):
     rclpy.init(args=args)
-
     sub_move_cmds = GetMoveCmds()
     rclpy.spin(sub_move_cmds)
-
     sub_move_cmds.destroy_node()
     rclpy.shutdown()
 

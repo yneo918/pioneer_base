@@ -80,7 +80,6 @@ class GiveDirections(Node):
         self.des_lat = msg_des_pos.latitude
         self.des_lon = msg_des_pos.longitude
 
-
     def euler_callback(self, msg_imu_euler:Float32MultiArray):
         if self.n_target_rover == 0:
             self.cur_heading = 360 - msg_imu_euler.data[0]
@@ -93,6 +92,25 @@ class GiveDirections(Node):
         data_msg = Float32MultiArray()
         data_msg.data = [float(self.cur_heading), float(self.des_heading), float(self.dist)]
         self.publisherImpData_.publish(data_msg)
+
+    def calculate_bearing_distance(self, lat0, lon0, lat1, lon1):
+        delta_lat = radians(lat1) - radians(lat0)
+        delta_lon = radians(lon1) - radians(lon0)
+        cos_lat1 = cos(radians(lat1))
+        cos_lat0 = cos(radians(lat0))
+        bearingX = cos_lat1 * sin(delta_lon)
+        bearingY = cos_lat0 * sin(radians(lat1)) - sin(radians(lat0)) * cos_lat1 * cos(delta_lon)
+        yaw = -atan2(bearingX,bearingY)
+        if yaw<0:
+            yaw += 2*pi
+        bearing = degrees(yaw)
+
+        R = 6373.0
+        a = sin(delta_lat/2)**2 + cos_lat1 * cos_lat0 * sin(delta_lon/2)**2
+        c = 2* atan2(sqrt(a), sqrt(1-a))
+        dist = R*c*1000
+
+        return bearing, dist
 
     def give_dir(self):
         delta_lat = radians(self.des_lat) - radians(self.cur_lat)
