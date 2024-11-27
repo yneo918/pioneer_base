@@ -93,7 +93,7 @@ class GiveDirections(Node):
         data_msg.data = [float(self.cur_heading), float(self.des_heading), float(self.dist)]
         self.publisherImpData_.publish(data_msg)
 
-    def calculate_bearing_distance(self, lat0, lon0, lat1, lon1):
+    def get_bearing_distance(self, lat0, lon0, lat1, lon1):
         delta_lat = radians(lat1) - radians(lat0)
         delta_lon = radians(lon1) - radians(lon0)
         cos_lat1 = cos(radians(lat1))
