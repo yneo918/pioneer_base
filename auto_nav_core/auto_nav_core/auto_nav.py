@@ -14,11 +14,13 @@ from .my_ros_module import PubSubManager, NavNode
 
 iniDesiredCoor = [37.35228, -121.941788] # Garage
 
+# Auto Navigation Node for single rover
 class AutoNav(NavNode):
-    def __init__(self, node_name='auto_nav', target_lat_lon=None, n_target_rover=1, th_distance=0.5, th_heading=5):
+    def __init__(self, node_name='auto_nav', target_lat_lon=None, th_distance=0.5, th_heading=5):
         super().__init__(node_name=node_name)
-        self.n_target_rover = n_target_rover
-        self.target_rover = f'p{self.n_target_rover}'
+        self.declare_parameter('robot_id', 'p1')
+        self.target_rover = self.get_parameter('robot_id').value
+        print(self.target_rover)
         self.th_distance = th_distance # meters
         self.th_heading = th_heading # degrees
 
@@ -65,18 +67,19 @@ class AutoNav(NavNode):
 
     def current_gps_callback(self, msg_cur_pos:NavSatFix):
         self.status_gps = msg_cur_pos.status.status
-        print("[Current] Status GPS:", self.status_gps , "Lat/Lon:", msg_cur_pos.latitude,msg_cur_pos.longitude)
+        #print("[Current] Status GPS:", self.status_gps , "Lat/Lon:", msg_cur_pos.latitude,msg_cur_pos.longitude)
         if self.status_gps != 0:
             self.cur_lat = msg_cur_pos.latitude
             self.cur_lon = msg_cur_pos.longitude
 
     def destination_gps_callback(self, msg_des_pos:NavSatFix):
-        print("[Destination] Lat/Lon:", msg_des_pos.latitude,msg_des_pos.longitude)
+        #print("[Destination] Lat/Lon:", msg_des_pos.latitude,msg_des_pos.longitude)
         self.des_lat = msg_des_pos.latitude
         self.des_lon = msg_des_pos.longitude
             
     def euler_callback(self, msg_imu_euler:Float32MultiArray):
         self.cur_heading =  msg_imu_euler.data[0]
+        #print("[Current] Status IMU:", self.target_rover , "Heading Angle:", self.cur_heading)
     
     def nav_callback(self):
         if self.cur_lat is None or self.cur_lon is None or self.des_lat is None or self.des_lon is None or self.cur_heading is None:
@@ -84,7 +87,7 @@ class AutoNav(NavNode):
             return
 
         self.des_heading, self.des_distance = self.get_bearing_distance(self.cur_lat, self.cur_lon, self.des_lat, self.des_lon)
-        print(self.des_heading, self.des_distance)
+        print("[Destination] Heading/distance: ",self.des_heading, self.des_distance)
 
         e_h = self.des_heading - self.cur_heading 
         e_d = self.des_distance

@@ -4,6 +4,7 @@ from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
 from std_msgs.msg import Bool, Int16
 from std_msgs.msg import String
+from std_msgs.msg import Float32MultiArray
 
 from .my_ros_module import JoyBase
 
@@ -12,11 +13,24 @@ class JoyCmd(JoyBase):
     def __init__(self, n_rover=6):
         super().__init__('multi_teleop')
 
-        self.lx_axisN = self.axis_dict.get("LY")
-        self.az_axisN = self.axis_dict.get("RX")
-        self.en_buttonN = self.button_dict.get("LB")
-        self.rover_sel_button = self.button_dict.get("Y")
-        self.mode_sel_button = "RB"
+        self.declare_parameters(
+            namespace='',
+            parameters=[
+                ('lx', "LY"),
+                ('az', "RX"),
+                ('en', "LB"),
+                ('rover_sel', "Y"),
+                ('mode_sel', "RB"),
+                ('revolution', "cross_lr"),
+                ('prismatic', "cross_ud")
+            ]
+        )
+
+        self.lx_axisN = self.axis_dict.get(self.get_parameter('lx').value)
+        self.az_axisN = self.axis_dict.get(self.get_parameter('az').value)
+        self.en_buttonN = self.button_dict.get(self.get_parameter('en').value)
+        self.rover_sel_button = self.button_dict.get(self.get_parameter('rover_sel').value)
+        self.mode_sel_button = self.button_dict.get(self.get_parameter('mode_sel').value)
 
         self.mode_list = ["NEU_M", "JOY_M", "NAV_M"]
         self.mode_dict = {"NEU_M": 0, "JOY_M": 1, "NAV_M": 2}
@@ -30,6 +44,8 @@ class JoyCmd(JoyBase):
         
         self.pubsub.create_publisher(Int16, '/select_rover', 1)
         self.pubsub.create_publisher(String, '/modeC', 1)
+        
+        self.pubsub.create_publisher(Float32MultiArray, '/nav/joy_formation', 5)
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback)
     
@@ -52,7 +68,7 @@ class JoyCmd(JoyBase):
         if _toggle[self.rover_sel_button] == 1:
             self.select = self.select%self.N_ROVER + 1
 
-        if _toggle[self.button_dict[self.mode_sel_button]] == 1:
+        if _toggle[self.mode_sel_button] == 1:
             print(f"Mode Button Toggled: {self.mode[self.mode_list[self.mode]]} to {self.mode[self.mode_list[(self.mode + 1) % 3]]}")
             self.rover_modeC = self.mode[self.mode_list[(self.mode + 1) % 3]]
 
@@ -65,6 +81,10 @@ class JoyCmd(JoyBase):
         else:
             self.pubsub.publish('/joy/cmd_vel', empty_twist)
             self.pubsub.publish('/joy/enable', false_state)
+        
+        msg_formation = Float32MultiArray()
+        msg_formation.data = [msg.axes[self.axis_dict[self.get_parameter('prismatic').value]], msg.axes[self.axis_dict[self.get_parameter('revolution').value]]]
+        self.pubsub.publish('/nav/joy_formation', msg_formation)
 
     def timer_callback(self):
         select_msg = Int16()
