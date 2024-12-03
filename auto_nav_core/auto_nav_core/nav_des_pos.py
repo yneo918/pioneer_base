@@ -94,7 +94,7 @@ class NavController(NavNode):
             5)
         self.pubsub.create_subscription(
             Float32MultiArray,
-            '/nav/joy_formation',
+            '/joy/cross',
             self.joy_formation_callback,
             5)
         self.pubsub.create_subscription(

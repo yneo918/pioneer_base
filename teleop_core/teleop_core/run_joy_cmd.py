@@ -45,7 +45,7 @@ class JoyCmd(JoyBase):
         self.pubsub.create_publisher(Int16, '/select_rover', 1)
         self.pubsub.create_publisher(String, '/modeC', 1)
         
-        self.pubsub.create_publisher(Float32MultiArray, '/nav/joy_formation', 5)
+        self.pubsub.create_publisher(Float32MultiArray, '/joy/cross', 5)
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback)
     
@@ -84,7 +84,7 @@ class JoyCmd(JoyBase):
         
         msg_formation = Float32MultiArray()
         msg_formation.data = [msg.axes[self.axis_dict[self.get_parameter('prismatic').value]], msg.axes[self.axis_dict[self.get_parameter('revolution').value]]]
-        self.pubsub.publish('/nav/joy_formation', msg_formation)
+        self.pubsub.publish('/joy/cross', msg_formation)
 
     def timer_callback(self):
         select_msg = Int16()
@@ -93,12 +93,7 @@ class JoyCmd(JoyBase):
 
         mode_msg = String()
         mode_msg.data = self.rover_modeC
-        self.pubsub.publish('/modeC', mode_msg) 
-
-    def robot_mode_callback(self):
-        msg = String()
-        msg.data = self.rover_modeC
-        self.pubsub.publish('/modeC', msg)            
+        self.pubsub.publish('/modeC', mode_msg)         
 
 
 def main(args=None):
