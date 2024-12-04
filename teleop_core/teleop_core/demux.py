@@ -15,6 +15,8 @@ class Demux(Node):
         self.N_ROVER = n_rover
         self.select = 0
 
+        self.broadcast = False
+
         self.pubsub = PubSubManager(self)
         self.pubsub.create_subscription(
             Twist,
@@ -31,6 +33,11 @@ class Demux(Node):
             '/select_rover',
             self.sel_callback,
             1)
+        self.pubsub.create_subscription(
+            Bool,
+            '/joy/broadcast',
+            self.broadcast_callback,
+            1)
         for i in range(self.N_ROVER):
             self.pubsub.create_publisher(Twist, f'/p{i+1}/cmd_vel', 5)
             self.pubsub.create_publisher(Bool, f'/p{i+1}/enable', 5)
@@ -40,6 +47,9 @@ class Demux(Node):
         self.lx = msg.linear.x
         self.az = msg.angular.z
 
+    def broadcast_callback(self, msg):
+        self.broadcast = msg.data
+    
     def sel_callback(self, msg):
         self.select = msg.data
         
@@ -54,7 +64,13 @@ class Demux(Node):
         false_state.data = False
 
         for i in range(self.N_ROVER):
-            if _en and self.select == i+1:
+            if self.broadcast:
+                en_state.data = True
+                val.linear.x = self.lx
+                val.angular.z = self.az
+                self.pubsub.publish(f'/p{i+1}/cmd_vel', val)
+                self.pubsub.publish(f'/p{i+1}/enable', en_state)
+            elif _en and self.select == i+1:
                 en_state.data = True
                 val.linear.x = self.lx
                 val.angular.z = self.az

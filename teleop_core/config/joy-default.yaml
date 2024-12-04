@@ -4,6 +4,7 @@ joy_cmd:
     az: "RX"
     en: "LB"
     rover_sel: "Y"
-    mode_sel: "RB"
+    mode_sel: "B"
+    broadcast: "RB"
     revolution: "cross_lr"
     prismatic: "cross_ud"
