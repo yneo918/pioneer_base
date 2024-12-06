@@ -53,14 +53,14 @@ class JoyCmd(JoyBase):
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.get_logger().info(
             f"JoyCmd Node Initialized\n \
-            lx: {self.axis_dict[self.get_parameter('lx').value]},\n \
-            az: {self.axis_dict[self.get_parameter('az').value]},\n \
-            en: {self.button_dict[self.get_parameter('en').value]},\n \
-            rover_sel: {self.button_dict[self.get_parameter('rover_sel').value]},\n \
-            mode_sel: {self.button_dict[self.get_parameter('mode_sel').value]},\n \
-            broadcast: {self.button_dict[self.get_parameter('broadcast').value]},\n \
-            revolution: {self.axis_dict[self.get_parameter('revolution').value]},\n \
-            prismatic: {self.axis_dict[self.get_parameter('prismatic').value]}\n"
+            lx: {self.get_parameter('lx').value},\n \
+            az: {self.get_parameter('az').value},\n \
+            en: {self.get_parameter('en').value},\n \
+            rover_sel: {self.get_parameter('rover_sel').value},\n \
+            mode_sel: {self.get_parameter('mode_sel').value},\n \
+            broadcast: {self.get_parameter('broadcast').value},\n \
+            revolution: {self.get_parameter('revolution').value},\n \
+            prismatic: {self.get_parameter('prismatic').value}\n"
         )
 
     
