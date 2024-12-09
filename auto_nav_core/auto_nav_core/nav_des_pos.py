@@ -17,12 +17,13 @@ INITIAL_DESIRED_COORDINATES = [37.35228, -121.941788] # Garage
 ROVER_FORMATION = [5.0, 0.0, 0.0,  5.0, 120.0, 0.0,  5.0, 240.0, 0.0] # [distance, angle, heading]
 
 class NavController(NavNode):
-    def __init__(self, node_name='nav_controller', target_lat_lon=None, robot_id_list=None):
+    def __init__(self, node_name='nav_controller', target_lat_lon=None):
         super().__init__(node_name=node_name)
 
         self.declare_parameters(
             namespace='',
             parameters=[
+                ('robot_id_list', ["p0"]),
                 ('rover_formation', ROVER_FORMATION),
                 ('scaling_coor', 0.05),
                 ('rotating_coor', 1.0),
@@ -44,6 +45,9 @@ class NavController(NavNode):
         self.cur_lon = []
         self.cur_heading = []
         self.status_gps = [0]*self.n_rover
+        robot_id_list = self.get_parameter('robot_id_list').value
+        if len(robot_id_list) == 1 and robot_id_list[0] == "p0":
+            robot_id_list = None
         self.robot_id_list = []
         if robot_id_list is None:
             for i in range(self.n_rover):
@@ -172,7 +176,7 @@ class NavController(NavNode):
 
 def main(args=None):
     rclpy.init(args=args)
-    sub_move_cmds = NavController(target_lat_lon=INITIAL_DESIRED_COORDINATES,robot_id_list=[2,3,4])
+    sub_move_cmds = NavController(target_lat_lon=INITIAL_DESIRED_COORDINATES)
     rclpy.spin(sub_move_cmds)
     sub_move_cmds.destroy_node()
     rclpy.shutdown()

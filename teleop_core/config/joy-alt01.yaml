@@ -1,5 +1,5 @@
 joy_cmd:
-  ros__parmeters:
+  ros__parameters:
     lx: "RY"
     az: "RX"
     en: "LB"
