@@ -82,6 +82,7 @@ class JoyCmd(JoyBase):
         # Toggle select rover
         if _toggle[self.rover_sel_button] == 1:
             self.select = self.select%self.N_ROVER + 1
+            self.get_logger().info(f"Sel Button Toggled: {self.select}")
 
         if _toggle[self.mode_sel_button] == 1:
             self.get_logger().info(f"Mode Button Toggled: {self.rover_modeC} to {self.mode_list[(self.mode_dict[self.rover_modeC] + 1) % 3]}")
