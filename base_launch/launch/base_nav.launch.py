@@ -45,14 +45,29 @@ def generate_launch_description():
         name="nav_controller",
         parameters=['src/auto_nav_core/config/navparams.yaml']
     )
+
+    mode_controller = Node(
+        package="mode_select",
+        executable="mode_select_multi",
+        name="mode_controller",
+        parameters=['src/mode_select/config/mode_sel.yaml']
+    )
     
-    
-    # include another launch file
-    launch_joy = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(
-                get_package_share_directory('teleop_core'),
-                'teleop_node_multi.launch.py'))
+    # Joy
+    run_joy_node = Node(
+        package="joy",
+        executable="joy_node",
+    )
+
+    joy_to_cmd_vel = Node(
+        package="teleop_core",
+        executable="joy2cmd",
+    )
+
+    demux = Node(
+        package="teleop_core",
+        executable="cmd_demux",
+        parameters=['src/teleop_core/config/demux.yaml']
     )
     
 
@@ -60,7 +75,10 @@ def generate_launch_description():
     ld.add_action(auto_nav_p3)
     ld.add_action(auto_nav_p5)
     ld.add_action(nav_controller)
-    ld.add_action(launch_joy)
+    ld.add_action(mode_controller)
+    ld.add_action(run_joy_node)
+    ld.add_action(joy_to_cmd_vel)
+    ld.add_action(demux)
 
     return ld
 

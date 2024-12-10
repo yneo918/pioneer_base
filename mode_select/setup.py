@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
         'mode_select = mode_select.mode_select:main',
+        'mode_select_multi = mode_select.mode_select_multi_input:main',
         ],
     },
 )

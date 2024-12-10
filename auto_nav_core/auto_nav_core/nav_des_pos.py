@@ -46,6 +46,7 @@ class NavController(NavNode):
         self.cur_heading = []
         self.status_gps = [0]*self.n_rover
         robot_id_list = self.get_parameter('robot_id_list').value
+        #self.get_logger().info(f"robot_id_list: {robot_id_list}")
         if len(robot_id_list) == 1 and robot_id_list[0] == "p0":
             robot_id_list = None
         self.robot_id_list = []
