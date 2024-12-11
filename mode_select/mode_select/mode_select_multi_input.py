@@ -51,13 +51,18 @@ class GetMoveCmds(Node):
         self.rover_modeC = self.mode_list[0]
 
         self.joy_cmd = [0.0, 0.0]
+        self.joy_cmd_demux = []
+        for _ in range(self.n_rover):
+            self.joy_cmd_demux.append([0.0, 0.0])
 
         self.pubsub = PubSubManager(self)
+        '''
         self.pubsub.create_subscription(
             Twist,
             '/joy/cmd_vel',
             self.joy_cmd_callback,
             5)
+        '''
         
         self.pubsub.create_subscription(
             String,
@@ -73,11 +78,11 @@ class GetMoveCmds(Node):
             self.pubsub.create_subscription(
                 Twist,
                 f'/joy/{self.robot_id_list[i]}/cmd_vel',
-                self.joy_cmd_callback,
+                lambda msg: self.joy_cmd_callback(msg, i),
                 5)
             self.pubsub.create_subscription(
                 Twist,
-                f'/{self.robot_id_list[i]}/nav_cmd_vel',
+                f'/nav/{self.robot_id_list[i]}/cmd_vel',
                 lambda msg: self.nav_cmd_callback(msg, i),
                 5)
             self.pubsub.create_publisher(
@@ -94,8 +99,8 @@ class GetMoveCmds(Node):
         # self.timer = self.create_timer(timer_period, self.rover_en_callback)
         # self.i = 0
         
-    def joy_cmd_callback(self, msg):
-        self.joy_cmd = [msg.linear.x, msg.angular.z]
+    def joy_cmd_callback(self, msg, i):
+        self.joy_cmd_demux[i] = [msg.linear.x, msg.angular.z]
     
     def nav_cmd_callback(self, msg, i):
         self.nav[i] = [msg.linear.x, msg.angular.z]
@@ -108,7 +113,7 @@ class GetMoveCmds(Node):
 
         if (self.rover_modeC == "JOY_M"):
             for i in range(self.n_rover):
-                self.u[i] = self.joy_cmd
+                self.u[i] = self.joy_cmd_demux[i]
         elif (self.rover_modeC == "NAV_M"):
             for i in range(self.n_rover):
                 self.u[i] = self.nav[i]

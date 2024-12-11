@@ -52,7 +52,7 @@ class AutoNav(NavNode):
 
         self.pubsub.create_publisher(
         	Twist,
-        	f'/{self.target_rover}/nav_cmd_vel', 
+        	f'/nav/{self.target_rover}/cmd_vel', 
         	5)
         self.pubsub.create_publisher(
         	Int16,
@@ -110,7 +110,7 @@ class AutoNav(NavNode):
         msg_cmd = Twist()
         msg_cmd.linear.x = ulx
         msg_cmd.angular.z = uaz
-        self.pubsub.publish(f'/{self.target_rover}/nav_cmd_vel',msg_cmd)
+        self.pubsub.publish(f'//nav/{self.target_rover}/cmd_vel',msg_cmd)
 
 
 def main(args=None):
