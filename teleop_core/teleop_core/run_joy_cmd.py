@@ -11,7 +11,7 @@ from .my_ros_module import JoyBase
 
 class JoyCmd(JoyBase):
     def __init__(self, n_rover=6):
-        super().__init__('multi_teleop')
+        super().__init__('joy_cmd')
 
         self.declare_parameters(
             namespace='',
