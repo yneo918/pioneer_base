@@ -33,6 +33,7 @@ def generate_launch_description():
     demux = Node(
         package="teleop_core",
         executable="cmd_demux",
+        parameters=["src/teleop_core/config/demux.yaml"],
     )
 
     
